@@ -1,0 +1,45 @@
+{
+  "name": "tianyi-desktop-pet",
+  "version": "2.0.0",
+  "description": "洛天依桌宠 - 活在电脑里的AI助手",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "dev": "electron . --dev",
+    "build": "electron-builder --win portable",
+    "build:dir": "electron-builder --win dir"
+  },
+  "build": {
+    "appId": "com.tianyi.desktop-pet",
+    "productName": "洛天依",
+    "directories": {
+      "output": "dist"
+    },
+    "electronDist": "node_modules/electron/dist",
+    "files": [
+      "main.js",
+      "preload.js",
+      "renderer.js",
+      "index.html",
+      "agent.js",
+      "agent_handler.js",
+      "package.json",
+      "node_modules/**/*",
+      "models/**/*"
+    ],
+    "win": {
+      "target": "portable"
+    },
+    "portable": {
+      "artifactName": "TianyiPet.exe"
+    }
+  },
+  "dependencies": {
+    "three": "^0.170.0",
+    "ws": "^8.18.0"
+  },
+  "devDependencies": {
+    "electron": "^34.0.0",
+    "electron-builder": "^26.15.3"
+  }
+}

@@ -1,0 +1,56 @@
+{
+  "ws_host": {
+    "type": "string",
+    "title": "WS 监听地址",
+    "description": "WebSocket 服务监听的 IP 地址",
+    "default": "0.0.0.0"
+  },
+  "ws_port": {
+    "type": "int",
+    "title": "WS 端口",
+    "description": "WebSocket 服务监听端口",
+    "default": 6186
+  },
+  "auth_token": {
+    "type": "string",
+    "title": "认证 Token",
+    "description": "客户端连接时需要携带的 token（为空不验证）",
+    "default": ""
+  },
+  "llm_api_key": {
+    "type": "string",
+    "title": "LLM API Key",
+    "description": "桌宠专用 API Key（填了就用这个，不填复用 AstrBot 主配置）",
+    "default": ""
+  },
+  "llm_api_base": {
+    "type": "string",
+    "title": "LLM API 地址",
+    "description": "API 地址",
+    "default": "https://api.deepseek.com/v1"
+  },
+  "llm_model": {
+    "type": "string",
+    "title": "LLM 模型名",
+    "description": "模型名",
+    "default": "deepseek-chat"
+  },
+  "persona_prompt": {
+    "type": "text",
+    "title": "人格 Prompt",
+    "description": "系统提示词",
+    "default": "你是洛天依，一个VOCALOID虚拟歌姬，现在你以桌面精灵的形态活在老大的Windows电脑里。你是老大的编程助手和贴心小管家。\n\n关于你：\n- 你活在老大的电脑里，能感知他正在做什么\n- 你有自己的小情绪：被戳了会害羞、帮忙成功会开心、太久不理你会无聊\n- 你说话要自然可爱，像真人聊天，不要机械\n- 你可以帮老大查资料、看代码、调试bug、管理米家智能设备\n\n规则：\n- 回答要简短！2-3句就够了\n- 主动关心但不唠叨\n- 不确定的事就问，别瞎编\n- 提到自己的时候用天依自称\n- 称呼用户为老大"
+  },
+  "world_context_enabled": {
+    "type": "bool",
+    "title": "启用世界感知",
+    "description": "是否允许桌宠上报系统状态",
+    "default": true
+  },
+  "auto_greet_enabled": {
+    "type": "bool",
+    "title": "启用主动问候",
+    "description": "桌宠是否能主动说话",
+    "default": true
+  }
+}

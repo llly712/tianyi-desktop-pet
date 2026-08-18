@@ -1,0 +1,5 @@
+name: astrbot_plugin_pet_bridge
+version: 4.0.0
+author: community
+description: 桌宠桥接插件——为桌面宠物提供 WebSocket 连接通道，让 AstrBot 成为桌宠的大脑。
+icon: logo.png
