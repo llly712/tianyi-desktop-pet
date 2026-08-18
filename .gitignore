@@ -1,0 +1,23 @@
+# Dependencies
+node_modules/
+dist/
+
+# Models (large binary files, users download separately)
+models/*.pmx
+models/*.vmd
+models/*.png
+models/*.bmp
+models/*.tga
+models/*.dds
+models/**/*.pmx
+models/**/*.vmd
+models/**/*.png
+models/**/*.bmp
+
+# Config (contains API keys)
+config.json
+%APPDATA%/tianyi-desktop-pet/
+
+# Build
+*.log
+npm-debug.log*
