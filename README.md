@@ -94,4 +94,3 @@ MIT License
 ## 致谢
 
 - 模型：TDA式改变洛天依-TID Blue Lolita.Ver by 庆先生
-- 贡献者：llly712
