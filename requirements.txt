@@ -1,0 +1,11 @@
+numpy
+scipy
+Pillow
+PyOpenGL
+PyOpenGL-accelerate
+glfw
+pybullet
+imgui
+websockets
+edge-tts
+pygame

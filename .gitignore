@@ -1,23 +1,42 @@
-# Dependencies
-node_modules/
-dist/
+# Python
+__pycache__/
+*.pyc
+*.pyo
 
-# Models (large binary files, users download separately)
-models/*.pmx
-models/*.vmd
-models/*.png
-models/*.bmp
-models/*.tga
-models/*.dds
-models/**/*.pmx
-models/**/*.vmd
-models/**/*.png
-models/**/*.bmp
+# Virtual environments
+.venv/
+.venv-agent/
+
+# Models (large binaries, download/provide your own)
+models/
+*.pmx
+*.vmd
 
 # Config (contains API keys)
 config.json
-%APPDATA%/tianyi-desktop-pet/
 
-# Build
+# Logs and debug captures
 *.log
-npm-debug.log*
+run.err
+screen.png
+screen2.png
+snapshot.png
+snap_half.png
+snap_new.png
+face_a.png
+face_b.png
+face_c.png
+face_d.png
+face_e.png
+face_f.png
+pose_*.png
+mouth_sheet.png
+pet_print.png
+pet_region.png
+pet_region2.png
+after.png
+before.png
+axes_out.txt
+rc_out.txt
+/face.png
+/preview_*.png

@@ -1,91 +1,104 @@
 # 洛天依桌宠 (Tianyi Desktop Pet)
 
-一个「活在电脑里」的桌面 AI 助手。基于 Electron + Three.js，支持 Live2D/PMX 模型渲染、语音对话、本地 Agent 控制电脑、AstrBot 云端接入。
+一个「活在电脑里」的桌面 AI 助手。基于 Python + OpenGL，支持 PMX (MMD) 模型渲染、语音合成、本地 Agent 控制电脑、AstrBot 云端接入。
 
 ## 功能
 
-- **3D 角色模型** - 支持 PMX (MMD) 模型，自动加载贴图与材质
-- **表情动画** - 眨眼、口型同步、多种表情（开心/难过/生气/惊讶等）
-- **语音对话** - 内置 TTS 朗读回复，支持唇型同步
-- **本地 Agent** - 通过 LLM function calling 控制电脑：运行命令、读写文件、搜索代码、打开应用
+- **3D 角色模型** - 支持 PMX (MMD) 模型，自动加载贴图与材质，透明窗口展示
+- **表情与动画** - 眨眼、呼吸、口型同步、20 多种表情（开心/生气/惊讶/害羞等）
+- **语音合成** - PPIO MiniMax Speech 音色复刻，失败自动回退 edge-tts
+- **本地 Agent** - 套壳 Open Interpreter，用 DeepSeek 驱动，可执行代码、控制电脑
 - **AstrBot 接入** - 可选连接云端 AstrBot，复用完整人格、工具、记忆
-- **窗口交互** - 任意拖动、右键菜单、穿透模式、自定义缩放
+- **桌面窗口** - 透明无边框、置顶、任意拖动、点击穿透（Ctrl+Shift+P）
+
+## 截图
+
+![全身](assets/full.png)
+
+## 环境
+
+- Windows 10/11
+- Python 3.12
+- 一块支持 OpenGL 的显卡（兼容模式 profile）
 
 ## 快速开始
 
-### 开发运行
-
-需要 Node.js 18+。
-
 ```bash
-npm install
-npx electron .
+py -3.12 -m venv .venv
+.venv\Scripts\pip install -r requirements.txt
+
+# 把 PMX 模型放到 models/ 下，然后在 config.json 里设置 model_path
+.venv\Scripts\python main.py
 ```
 
-模型文件放在 `models/` 目录下（PMX/VMD 格式）。
+### Agent 环境（可选）
 
-### 打包分发
+本地 Agent 依赖 Open Interpreter，单独装在隔离环境里，避免污染渲染依赖：
 
 ```bash
-npm run build        # 生成 win-unpacked
-npm run build:dir    # 仅打包目录
+py -3.12 -m venv .venv-agent
+.venv-agent\Scripts\pip install -r requirements-agent.txt
+.venv-agent\Scripts\pip install --no-deps open-interpreter==0.4.3
+.venv-agent\Scripts\pip install "setuptools<81"
 ```
 
 ## 配置
 
-配置文件在 `%APPDATA%\tianyi-desktop-pet\config.json`：
+配置保存在 `config.json`（不提交，含密钥）。主要字段：
 
 ```json
 {
-  "serverUrl": "ws://你的服务器:6186/ws/pet",
-  "modelName": "models/模型.pmx",
-  "modelScale": 0.4,
-  "agentApiKey": "sk-你的本地Agent密钥",
-  "agentApiBase": "https://api.deepseek.com/v1",
-  "agentModel": "deepseek-chat",
-  "ttsEnabled": true
+  "model_path": "models/你的模型.pmx",
+  "ws_url": "ws://你的服务器:6186/ws/pet",
+
+  "tts_provider": "ppio",
+  "ppio_api_key": "sk-你的PPIO密钥",
+  "tts_voice_id": "voice_复刻音色ID",
+
+  "agent_enabled": true,
+  "agent_prefix": "agent:",
+  "agent_model": "deepseek/deepseek-flash",
+  "agent_api_key": "sk-你的DeepSeek密钥",
+  "agent_api_base": "https://api.deepseek.com/v1"
 }
 ```
 
-### 本地 Agent 模式
+## 使用
 
-在桌宠输入框输入 `agent: 你的任务`，即可让本地 LLM 通过 function calling 控制电脑。
-
-支持的操作：
-
-- `agent: 帮我打开记事本`
-- `agent: 看看桌面有什么文件`
-- `agent: 搜索 main.py 里的 bug`
-- `agent: 我的电脑配置是什么`
-
-Agent 使用 OpenAI 兼容 API，可接入任意服务（DeepSeek、Ollama、PPIO 等）。
-
-### AstrBot 模式
-
-默认连接云端 AstrBot，复用完整的洛天依人格（SKILL）、米家工具、记忆系统。
+- 在底部输入框聊天 -> 走 AstrBot 云端管道
+- 输入 `agent: 你的任务` -> 让本地 Agent 控制电脑
+- 右键菜单 -> 表情 / 缩放 / 半身全身 / 穿透 / 置顶 / 设置
+- `Ctrl+Shift+P` -> 切换鼠标穿透
 
 ## 项目结构
 
 ```
-desktop_pet/          # Electron 桌面端
-  main.js             # 主进程（窗口、Agent、文件服务）
-  preload.js          # IPC 桥接
-  renderer.js         # 渲染进程（3D模型、动画、对话UI）
-  index.html          # 界面
-  agent.js            # 本地 Agent 引擎（function calling）
-  agent_handler.js    # Agent 桥接
-  models/             # PMX/VMD 模型目录
-
-astrbot_plugin_pet_bridge/  # AstrBot 服务端插件（可选）
-  main.py             # WebSocket 桥接 + 完整管道接入
+app/                          # 应用主体
+  main.py                     # 入口与主循环
+  renderer.py                 # PMX 渲染、相机、表情/口型驱动
+  morph.py                    # morph(表情/口型) 控制器
+  expressions.py              # 表情 -> morph 名称映射
+  window.py                   # GLFW 透明窗口 + imgui
+  ui.py                       # imgui 界面 (66ccff 主题)
+  net.py                      # AstrBot WebSocket 客户端
+  voice.py                    # PPIO / edge TTS
+  agent.py                    # 本地 Agent 子进程桥
+  config.py                   # 配置
+tools/                        # 调试与构建脚本
+  patch_mmdpy.py              # 为 vendored mmdpy 打补丁
+vendor/                       # mmdpy (MMD/PMX 渲染库, 已打补丁)
+models/                       # PMX/VMD 模型目录 (不入库)
+astrbot_plugin_pet_bridge/    # AstrBot 服务端插件 (可选)
 ```
 
 ## 技术栈
 
-- Electron 34
-- Three.js (PMX/MMD 渲染)
-- Web Speech API (TTS/STT)
-- OpenAI 兼容 API (本地 Agent)
+- Python 3.12
+- mmdpy + PyOpenGL（PMX/MMD 渲染）
+- GLFW + pyimgui（窗口与界面）
+- PPIO MiniMax Speech（语音合成）
+- Open Interpreter + DeepSeek（本地 Agent）
+- WebSocket（AstrBot 接入）
 
 ## 开源协议
 
@@ -94,3 +107,4 @@ MIT License
 ## 致谢
 
 - 模型：TDA式改变洛天依-TID Blue Lolita.Ver by 庆先生
+- 渲染库：mmdpy (MIT)
