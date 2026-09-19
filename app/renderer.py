@@ -150,28 +150,32 @@ class PetRenderer:
         self.morph.update()
 
     def _update_blink(self, dt: float) -> None:
-        if not self.cfg.blink_enabled:
+        if not self.morph:
             return
-        # don't fight an expression that already closes the eyes
-        if self.expression in ("close_eye", "happy", "cute", "sleepy"):
+        # resting lid: keep the eyes relaxed instead of fully wide open
+        rest = float(getattr(self.cfg, "eye_lid", 0.0)) if self.cfg.blink_enabled else 0.0
+        # don't fight an expression that already controls the eyes
+        if self.expression in ("close_eye", "sleepy"):
             return
 
         if self._blink_progress < 0.0:
             self._blink_clock -= dt
             if self._blink_clock <= 0.0:
                 self._blink_progress = 0.0
-            return
+            else:
+                self.morph.set_weight("まばたき", rest)
+                return
 
         self._blink_progress += dt
         t = self._blink_progress
         if t < 0.06:
-            w = t / 0.06
+            w = rest + (1.0 - rest) * (t / 0.06)
         elif t < 0.10:
             w = 1.0
         elif t < 0.22:
-            w = 1.0 - (t - 0.10) / 0.12
+            w = 1.0 - (1.0 - rest) * ((t - 0.10) / 0.12)
         else:
-            w = 0.0
+            w = rest
             self._blink_progress = -1.0
             self._blink_clock = random.uniform(2.5, 6.5)
         self.morph.set_weight("まばたき", w)

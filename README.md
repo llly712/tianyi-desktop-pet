@@ -1,19 +1,25 @@
-# 洛天依桌宠 (Tianyi Desktop Pet)
+# 洛天依桌宠 (Tianyi Desktop Pet) v0.4.1
 
 一个「活在电脑里」的桌面 AI 助手。基于 Python + OpenGL，支持 PMX (MMD) 模型渲染、语音合成、本地 Agent 控制电脑、AstrBot 云端接入。
+
+## 下载
+
+Windows 免安装版见 [Releases](https://github.com/llly712/tianyi-desktop-pet/releases)：解压后双击 `洛天依.exe` 即可运行（自带模型与依赖）。
+
+本地 Agent 功能需要额外运行一次 `setup-agent.bat`（需要系统已安装 Python 3.12）。
 
 ## 功能
 
 - **3D 角色模型** - 支持 PMX (MMD) 模型，自动加载贴图与材质，透明窗口展示
 - **表情与动画** - 眨眼、呼吸、口型同步、20 多种表情（开心/生气/惊讶/害羞等）
-- **语音合成** - 
-- **本地 Agent** - 套壳 Open Interpreter
+- **语音合成** - PPIO MiniMax Speech 音色复刻，失败自动回退 edge-tts
+- **本地 Agent** - 套壳 Open Interpreter，用 DeepSeek 驱动，可执行代码、控制电脑
 - **AstrBot 接入** - 可选连接云端 AstrBot，复用完整人格、工具、记忆
 - **桌面窗口** - 透明无边框、置顶、任意拖动、点击穿透（Ctrl+Shift+P）
 
 ## 截图
 
-
+![全身](assets/full.png)
 
 ## 环境
 
@@ -96,6 +102,8 @@ astrbot_plugin_pet_bridge/    # AstrBot 服务端插件 (可选)
 - Python 3.12
 - mmdpy + PyOpenGL（PMX/MMD 渲染）
 - GLFW + pyimgui（窗口与界面）
+- PPIO MiniMax Speech（语音合成）
+- Open Interpreter + DeepSeek（本地 Agent）
 - WebSocket（AstrBot 接入）
 
 ## 开源协议

@@ -7,7 +7,7 @@ import sys
 import threading
 from pathlib import Path
 
-from .config import ROOT
+from .config import RES_ROOT, ROOT
 
 
 class LocalAgent:
@@ -19,12 +19,26 @@ class LocalAgent:
         self._start()
 
     # ------------------------------------------------------------- process
-    def _python(self) -> str:
+    def _python(self) -> str | None:
         p = ROOT / ".venv-agent" / "Scripts" / "python.exe"
-        return str(p) if p.exists() else sys.executable
+        if p.exists():
+            return str(p)
+        if getattr(sys, "frozen", False):
+            return None
+        return sys.executable
 
     def _start(self) -> None:
-        worker = ROOT / "tools" / "oi_worker.py"
+        worker = RES_ROOT / "tools" / "oi_worker.py"
+        python = self._python()
+        if not python:
+            self.proc = None
+            self.on_event(
+                {
+                    "type": "error",
+                    "text": "未找到 agent 运行环境（.venv-agent），请先运行 setup-agent.bat",
+                }
+            )
+            return
         payload = {
             "model": self.cfg.agent_model,
             "api_key": self.cfg.agent_api_key,
@@ -37,7 +51,7 @@ class LocalAgent:
         flags = getattr(subprocess, "CREATE_NO_WINDOW", 0) if sys.platform == "win32" else 0
         try:
             self.proc = subprocess.Popen(
-                [self._python(), "-u", str(worker), json.dumps(payload, ensure_ascii=False)],
+                [python, "-u", str(worker), json.dumps(payload, ensure_ascii=False)],
                 stdin=subprocess.PIPE,
                 stdout=subprocess.PIPE,
                 stderr=subprocess.DEVNULL,

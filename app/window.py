@@ -91,6 +91,91 @@ class PetWindow:
         glfw.set_window_pos(self.window, x + int(dx), y + int(dy))
 
     # ------------------------------------------------------------- rendering
+    def _ensure_scene_target(self, w: int, h: int, scale: float) -> None:
+        from OpenGL import GL as gl
+
+        tw = max(1, int(round(w * scale)))
+        th = max(1, int(round(h * scale)))
+        if getattr(self, "_fbo", None) is not None and getattr(self, "_tw", 0) == tw and getattr(self, "_th", 0) == th:
+            return
+        self._destroy_scene_target()
+        self._tex = gl.glGenTextures(1)
+        gl.glBindTexture(gl.GL_TEXTURE_2D, self._tex)
+        gl.glTexImage2D(
+            gl.GL_TEXTURE_2D, 0, gl.GL_RGBA8, tw, th, 0,
+            gl.GL_RGBA, gl.GL_UNSIGNED_BYTE, None,
+        )
+        gl.glTexParameteri(gl.GL_TEXTURE_2D, gl.GL_TEXTURE_MIN_FILTER, gl.GL_LINEAR)
+        gl.glTexParameteri(gl.GL_TEXTURE_2D, gl.GL_TEXTURE_MAG_FILTER, gl.GL_LINEAR)
+        gl.glTexParameteri(gl.GL_TEXTURE_2D, gl.GL_TEXTURE_WRAP_S, gl.GL_CLAMP_TO_EDGE)
+        gl.glTexParameteri(gl.GL_TEXTURE_2D, gl.GL_TEXTURE_WRAP_T, gl.GL_CLAMP_TO_EDGE)
+        self._depth = gl.glGenRenderbuffers(1)
+        gl.glBindRenderbuffer(gl.GL_RENDERBUFFER, self._depth)
+        gl.glRenderbufferStorage(gl.GL_RENDERBUFFER, gl.GL_DEPTH_COMPONENT24, tw, th)
+        self._fbo = gl.glGenFramebuffers(1)
+        gl.glBindFramebuffer(gl.GL_FRAMEBUFFER, self._fbo)
+        gl.glFramebufferTexture2D(
+            gl.GL_FRAMEBUFFER, gl.GL_COLOR_ATTACHMENT0, gl.GL_TEXTURE_2D, self._tex, 0
+        )
+        gl.glFramebufferRenderbuffer(
+            gl.GL_FRAMEBUFFER, gl.GL_DEPTH_ATTACHMENT, gl.GL_RENDERBUFFER, self._depth
+        )
+        ok = gl.glCheckFramebufferStatus(gl.GL_FRAMEBUFFER) == gl.GL_FRAMEBUFFER_COMPLETE
+        gl.glBindFramebuffer(gl.GL_FRAMEBUFFER, 0)
+        if not ok:
+            self._destroy_scene_target()
+            return
+        self._tw, self._th = tw, th
+
+    def begin_scene(self, w: int, h: int, scale: float = 1.0):
+        """Bind the (super-sampled) scene target; returns the size to render at."""
+        from OpenGL import GL as gl
+
+        try:
+            if scale and float(scale) > 1.0:
+                self._ensure_scene_target(w, h, float(scale))
+        except Exception as exc:  # noqa: BLE001
+            print(f"[ssaa] disabled: {exc!r}", flush=True)
+            self._destroy_scene_target()
+
+        if getattr(self, "_fbo", None) is not None:
+            gl.glBindFramebuffer(gl.GL_FRAMEBUFFER, self._fbo)
+            gl.glViewport(0, 0, self._tw, self._th)
+            self._supersample = True
+            return self._tw, self._th
+        self._supersample = False
+        gl.glBindFramebuffer(gl.GL_FRAMEBUFFER, 0)
+        gl.glViewport(0, 0, w, h)
+        return w, h
+
+    def end_scene(self, w: int, h: int) -> None:
+        if not getattr(self, "_supersample", False):
+            return
+        from OpenGL import GL as gl
+
+        gl.glBindFramebuffer(gl.GL_READ_FRAMEBUFFER, self._fbo)
+        gl.glBindFramebuffer(gl.GL_DRAW_FRAMEBUFFER, 0)
+        gl.glBlitFramebuffer(
+            0, 0, self._tw, self._th,
+            0, 0, w, h,
+            gl.GL_COLOR_BUFFER_BIT, gl.GL_LINEAR,
+        )
+        gl.glBindFramebuffer(gl.GL_FRAMEBUFFER, 0)
+
+    def _destroy_scene_target(self) -> None:
+        from OpenGL import GL as gl
+
+        if getattr(self, "_fbo", None):
+            gl.glDeleteFramebuffers(1, [self._fbo])
+            self._fbo = None
+        if getattr(self, "_tex", None):
+            gl.glDeleteTextures([self._tex])
+            self._tex = None
+        if getattr(self, "_depth", None):
+            gl.glDeleteRenderbuffers(1, [self._depth])
+            self._depth = None
+        self._tw = self._th = 0
+
     def begin_frame(self) -> None:
         self.impl.process_inputs()
         imgui.new_frame()
@@ -130,6 +215,10 @@ class PetWindow:
         return bool(imgui.get_io().want_capture_mouse)
 
     def destroy(self) -> None:
+        try:
+            self._destroy_scene_target()
+        except Exception:
+            pass
         try:
             self.impl.shutdown()
         except Exception:

@@ -3,10 +3,17 @@ from __future__ import annotations
 
 import dataclasses
 import json
+import sys
 from dataclasses import dataclass, field
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parent.parent
+if getattr(sys, "frozen", False):
+    ROOT = Path(sys.executable).resolve().parent
+    RES_ROOT = Path(getattr(sys, "_MEIPASS", ROOT))
+else:
+    ROOT = Path(__file__).resolve().parent.parent
+    RES_ROOT = ROOT
+
 CONFIG_PATH = ROOT / "config.json"
 
 
@@ -31,6 +38,7 @@ class Config:
     always_on_top: bool = True
     click_through: bool = False
     fps: int = 60
+    render_scale: float = 2.0
 
     # astrbot bridge
     ws_url: str = ""
@@ -62,10 +70,11 @@ class Config:
     # behaviour
     expressions_enabled: bool = True
     blink_enabled: bool = True
+    eye_lid: float = 0.18
     greet_on_start: bool = True
     greet_tts: bool = False
     greet_text: str = "诶嘿~ 洛天依上线啦！"
-    default_expression: str = "smile"
+    default_expression: str = "neutral"
 
     # ui
     font_path: str = "C:/Windows/Fonts/Deng.ttf"
@@ -73,7 +82,7 @@ class Config:
 
     def resolve_model(self) -> Path:
         p = Path(self.model_path)
-        return p if p.is_absolute() else (ROOT / p)
+        return p if p.is_absolute() else (RES_ROOT / p)
 
     def save(self) -> None:
         data = dataclasses.asdict(self)

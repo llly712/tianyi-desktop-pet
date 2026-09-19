@@ -45,7 +45,7 @@ def pick_expression(text: str) -> str:
     for words, name in KEYWORDS:
         if any(w in text for w in words):
             return name
-    return "smile"
+    return "neutral"
 
 
 class App:
@@ -112,12 +112,18 @@ class App:
                 last = now
 
                 window.begin_frame()
-                gl.glClear(gl.GL_COLOR_BUFFER_BIT | gl.GL_DEPTH_BUFFER_BIT)
 
                 self._drain_inbox(renderer, ui, voice)
                 self._handle_drag(window)
+
+                sw, sh = window.begin_scene(
+                    window.width, window.height, getattr(self.cfg, "render_scale", 1.0)
+                )
+                gl.glClearColor(0.0, 0.0, 0.0, 0.0)
+                gl.glClear(gl.GL_COLOR_BUFFER_BIT | gl.GL_DEPTH_BUFFER_BIT)
                 renderer.update(dt)
-                renderer.draw(window.width, window.height)
+                renderer.draw(sw, sh)
+                window.end_scene(window.width, window.height)
 
                 actions = ui.draw(self, window.width, window.height)
                 self._apply_actions(actions, window, renderer, ui, voice, bridge)
